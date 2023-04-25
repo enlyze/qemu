@@ -481,7 +481,7 @@ void helper_vmmcall(CPUX86State *env)
             // Unknown.
             env->regs[R_EAX] = 0xdeadbeef;
             break;
-        case 0x401:
+        case 0x401: {
             // Read IOAPIC register.
             int apic_id = env->regs[R_EBX];
             int reg = env->regs[R_ECX];
@@ -494,6 +494,21 @@ void helper_vmmcall(CPUX86State *env)
             env->regs[R_EAX] = 0;
             env->regs[R_EBX] = register_value;
             break;
+        }
+        case 0x402: {
+            // Write IOAPIC register.
+            int apic_id = env->regs[R_EBX];
+            int reg = env->regs[R_ECX];
+            uint64_t val = env->regs[R_EDX];
+
+            assert(apic_id < MAX_IOAPICS);
+            struct IOAPICCommonState *ioapic = ioapics[apic_id];
+            
+            ioapic_mem_write(ioapic, IOAPIC_IOREGSEL, reg, 4);
+            ioapic_mem_write(ioapic, IOAPIC_IOWIN, val, 4);
+            env->regs[R_EAX] = 0;
+            break;
+        }
         case 0x503:
             // Unknown.
             switch (env->regs[R_EDX]) {
@@ -501,6 +516,8 @@ void helper_vmmcall(CPUX86State *env)
                     env->regs[R_ECX] = 0x10e00000;
                     break;
             }
+            break;
+        case 0x504:
             break;
         default:
             printf("unexpected vmmcall: %lx\n", env->regs[R_EAX]);
