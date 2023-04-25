@@ -67,8 +67,6 @@ static void pc_isa_bios_init(MemoryRegion *rom_memory,
     memcpy(isa_bios_ptr,
            ((uint8_t*)flash_ptr) + (flash_size - isa_bios_size),
            isa_bios_size);
-
-    memory_region_set_readonly(isa_bios, true);
 }
 
 static PFlashCFI01 *pc_pflash_create(PCMachineState *pcms,
