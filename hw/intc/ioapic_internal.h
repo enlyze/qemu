@@ -28,8 +28,6 @@
 #include "qemu/notify.h"
 #include "qom/object.h"
 
-#define MAX_IOAPICS                     2
-
 #define IOAPIC_LVT_DEST_SHIFT           56
 #define IOAPIC_LVT_DEST_IDX_SHIFT       48
 #define IOAPIC_LVT_MASKED_SHIFT         16
@@ -68,10 +66,6 @@
 
 #define IOAPIC_VECTOR_MASK              0xff
 
-#define IOAPIC_IOREGSEL                 0x00
-#define IOAPIC_IOWIN                    0x10
-#define IOAPIC_EOI                      0x40
-
 #define IOAPIC_REG_ID                   0x00
 #define IOAPIC_REG_VER                  0x01
 #define IOAPIC_REG_ARB                  0x02
@@ -94,21 +88,6 @@ struct IOAPICCommonClass {
     DeviceUnrealize unrealize;
     void (*pre_save)(IOAPICCommonState *s);
     void (*post_load)(IOAPICCommonState *s);
-};
-
-struct IOAPICCommonState {
-    SysBusDevice busdev;
-    MemoryRegion io_memory;
-    uint8_t id;
-    uint8_t ioregsel;
-    uint32_t irr;
-    uint64_t ioredtbl[IOAPIC_NUM_PINS];
-    Notifier machine_done;
-    uint8_t version;
-    uint64_t irq_count[IOAPIC_NUM_PINS];
-    int irq_level[IOAPIC_NUM_PINS];
-    int irq_eoi[IOAPIC_NUM_PINS];
-    QEMUTimer *delayed_ioapic_service_timer;
 };
 
 void ioapic_reset_common(DeviceState *dev);

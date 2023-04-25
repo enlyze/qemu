@@ -17,6 +17,8 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "hw/sysbus.h"
+
 #ifndef HW_INTC_IOAPIC_H
 #define HW_INTC_IOAPIC_H
 
@@ -29,5 +31,30 @@
 #define TYPE_IOAPIC "ioapic"
 
 void ioapic_eoi_broadcast(int vector);
+
+#define MAX_IOAPICS                     2
+
+#define IOAPIC_IOREGSEL                 0x00
+#define IOAPIC_IOWIN                    0x10
+#define IOAPIC_EOI                      0x40
+
+struct IOAPICCommonState {
+    SysBusDevice busdev;
+    MemoryRegion io_memory;
+    uint8_t id;
+    uint8_t ioregsel;
+    uint32_t irr;
+    uint64_t ioredtbl[IOAPIC_NUM_PINS];
+    Notifier machine_done;
+    uint8_t version;
+    uint64_t irq_count[IOAPIC_NUM_PINS];
+    int irq_level[IOAPIC_NUM_PINS];
+    int irq_eoi[IOAPIC_NUM_PINS];
+    QEMUTimer *delayed_ioapic_service_timer;
+};
+
+extern struct IOAPICCommonState *ioapics[MAX_IOAPICS];
+uint64_t ioapic_mem_read(void *opaque, hwaddr addr, unsigned int size);
+void ioapic_mem_write(void *opaque, hwaddr addr, uint64_t val, unsigned int size);
 
 #endif /* HW_INTC_IOAPIC_H */

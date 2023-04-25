@@ -40,7 +40,7 @@
 #define APIC_POLARITY_SHIFT 14
 #define APIC_TRIG_MODE_SHIFT 15
 
-static IOAPICCommonState *ioapics[MAX_IOAPICS];
+IOAPICCommonState *ioapics[MAX_IOAPICS];
 
 /* global variable from ioapic_common.c */
 extern int ioapic_no;
@@ -292,7 +292,7 @@ void ioapic_eoi_broadcast(int vector)
     }
 }
 
-static uint64_t
+uint64_t
 ioapic_mem_read(void *opaque, hwaddr addr, unsigned int size)
 {
     IOAPICCommonState *s = opaque;
@@ -364,7 +364,7 @@ ioapic_fix_edge_remote_irr(uint64_t *entry)
     }
 }
 
-static void
+void
 ioapic_mem_write(void *opaque, hwaddr addr, uint64_t val,
                  unsigned int size)
 {
