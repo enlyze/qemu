@@ -518,6 +518,8 @@ void helper_vmmcall(CPUX86State *env)
             }
             break;
         case 0x504:
+            env->regs[R_EAX] = 0;
+            env->regs[R_EBX] = 0;
             break;
         default:
             printf("unexpected vmmcall: %lx\n", env->regs[R_EAX]);
