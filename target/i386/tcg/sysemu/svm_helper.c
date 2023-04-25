@@ -24,6 +24,7 @@
 #include "exec/exec-all.h"
 #include "exec/cpu_ldst.h"
 #include "tcg/helper-tcg.h"
+#include "hw/intc/ioapic.h"
 
 /* Secure Virtual Machine helpers */
 
@@ -457,7 +458,55 @@ void helper_vmrun(CPUX86State *env, int aflag, int next_eip_addend)
 void helper_vmmcall(CPUX86State *env)
 {
     cpu_svm_check_intercept_param(env, SVM_EXIT_VMMCALL, 0, GETPC());
-    raise_exception(env, EXCP06_ILLOP);
+
+    printf("VMMCALL(EAX=%lx EBX=%lx ECX=%lx EDX=%lx)\n", env->regs[R_EAX], env->regs[R_EBX], env->regs[R_ECX], env->regs[R_EDX]);
+
+    switch (env->regs[R_EAX]) {
+        case 0x101:
+            // Unknown.
+            env->regs[R_EAX] = 1;
+            break;
+        case 0x102:
+            // Unknown.
+            env->regs[R_EAX] = 0;
+            break;
+        case 0x104:
+            // Unknown.
+            env->regs[R_EAX] = 0;
+            env->regs[R_EBX] = 0xdeadbeef;
+            env->regs[R_ECX] = 0xdeadbeef;
+            env->regs[R_EDX] = 0xdeadbeef;
+            break;
+        case 0x204:
+            // Unknown.
+            env->regs[R_EAX] = 0xdeadbeef;
+            break;
+        case 0x401:
+            // Read IOAPIC register.
+            int apic_id = env->regs[R_EBX];
+            int reg = env->regs[R_ECX];
+
+            assert(apic_id < MAX_IOAPICS);
+            struct IOAPICCommonState *ioapic = ioapics[apic_id];
+            
+            ioapic_mem_write(ioapic, IOAPIC_IOREGSEL, reg, 4);
+            uint64_t register_value = ioapic_mem_read(ioapic, IOAPIC_IOWIN, 4);
+            env->regs[R_EAX] = 0;
+            env->regs[R_EBX] = register_value;
+            break;
+        case 0x503:
+            // Unknown.
+            switch (env->regs[R_EDX]) {
+                case 2:
+                    env->regs[R_ECX] = 0x10e00000;
+                    break;
+            }
+            break;
+        default:
+            printf("unexpected vmmcall: %lx\n", env->regs[R_EAX]);
+            raise_exception(env, EXCP06_ILLOP);
+            break;
+    }
 }
 
 void helper_vmload(CPUX86State *env, int aflag)
